@@ -1,0 +1,15 @@
+{
+  "name": "web-of-trust",
+  "version": "0.0.1",
+  "description": "A tool for building GPG web of trust visualizations",
+  "main": "index.js",
+  "dependencies": {
+    "async": "~0.2.10"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Justin Gallardo <justin.gallardo@gmail.com>",
+  "license": "MIT"
+}
