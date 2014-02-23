@@ -3,6 +3,7 @@
 var spawn = require('child_process').spawn;
 
 var async = require('async');
+var _ = require('underscore');
 
 var userNotFound = /User ID not found/;
 var pub = /^pub\s+.+\/(.{8})/;
@@ -13,6 +14,51 @@ var Gpg = function(keychain) {
   this.keychain = keychain;
   this.users = {};
   this.signatureOutput = [];
+};
+
+Gpg.prototype.createD3Tree = function(callback) {
+  var tree,
+      nodes = [];
+
+  tree = {
+    nodes: [],
+    links: []
+  };
+
+  if (Object.keys(this.users).length === 0) {
+    callback();
+    return;
+  }
+
+  // Generate Nodes
+  _.each(this.users, function(user, fingerprint) {
+    nodes.push(fingerprint);
+    tree.nodes.push({
+      fingerprint: fingerprint,
+      name: user.name,
+      email: user.email,
+      sigCount: user.signatures.length
+    });
+  });
+
+  _.each(this.users, function(user, fingerprint) {
+    var dst;
+
+    dst = nodes.indexOf(fingerprint);
+
+    user.signatures.forEach(function(sig) {
+      if (nodes.indexOf(sig) !== -1) {
+        tree.links.push({
+          target: dst,
+          source: nodes.indexOf(sig),
+          sigCount: user.signatures.length
+        });
+      }
+    });
+  });
+
+  console.log(JSON.stringify(tree));
+  callback();
 };
 
 Gpg.prototype.parseSignatureOutput = function(callback) {
@@ -86,8 +132,9 @@ function main() {
 
     gpg.parseSignatureOutput.bind(gpg),
 
+    gpg.createD3Tree.bind(gpg)
+
   ], function(err) {
-    console.log(JSON.stringify(gpg.users));
   });
 }
 

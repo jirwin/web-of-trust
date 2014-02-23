@@ -4,7 +4,8 @@
   "description": "A tool for building GPG web of trust visualizations",
   "main": "index.js",
   "dependencies": {
-    "async": "~0.2.10"
+    "async": "~0.2.10",
+    "underscore": "~1.6.0"
   },
   "devDependencies": {},
   "scripts": {
