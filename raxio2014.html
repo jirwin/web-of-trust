@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="d3.v3.min.js"></script>
+<style>
+
+path.link {
+  fill: none;
+  stroke: #5668e2;
+  stroke-width: 1.5px;
+}
+
+circle {
+  fill: #000;
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+marker {
+  stroke: #5668e2;
+  stroke-width: .1em;
+  fill: none;
+}
+
+text {
+  fill: #000;
+  font: 10px sans-serif;
+  pointer-events: none;
+}
+
+.legend {
+  padding: 5px;
+  font: 10px sans-serif;
+  box-shadow: 2px 2px 1px #888;
+}
+
+.legend-label {
+  font: 15px sans-serif;
+}
+
+.title {
+  font: 20px sans-serif bold;
+  fill: #000;
+}
+</style>
+<body>
+<script>
+
+// Heavily inspired by http://bl.ocks.org/d3noob/5141528
+  //8a56e2,cf56e2,e256ae,e25668,e28956,e2cf56,aee256,68e256,56e289,56e2cf,56aee2,5668e2
+
+var w = window,
+    d = document,
+    e = d.documentElement,
+    g = d.getElementsByTagName('body')[0],
+    width = w.innerWidth || e.clientWidth || g.clientWidth,
+    height = w.innerHeight|| e.clientHeight|| g.clientHeight;
+
+
+d3.json("raxio2014.json", function(error, tree) {
+  var nodes = tree.nodes,
+      links = tree.links,
+      circleScale,
+      officeColors,
+      legend,
+      title,
+      force,
+      color,
+      path,
+      node,
+      svg;
+
+  officeColors = {
+    'castle': '#cf56e2',
+    'san francisco': '#56e289',
+    'blacksburg': '#e2cf56',
+    'austin': '#e25668',
+    'sydney': '#56aee2',
+    'zurich': '#e28956',
+    'atlanta': '#56e2cf',
+    'wfh': '#8a56e2'
+  };
+
+  // Compute the distinct nodes from the links.
+  links.forEach(function(link) {
+      link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
+      link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
+      link.value = +link.value;
+  });
+
+  force = d3.layout.force()
+      .nodes(d3.values(nodes))
+      .links(links)
+      .size([width, height])
+      .linkDistance(500)
+      .charge(-550)
+      .on("tick", tick)
+      .start();
+
+  circleScale = d3.scale.linear()
+      .domain([0, d3.max(nodes, function (d) { return d.sigCount; })])
+      .range([5, 50]);
+
+  svg = d3.select("body").append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+  // build the arrow.
+  svg.append("svg:defs").selectAll("marker")
+      .data(["mid"])      // Different link/path types can be defined here
+    .enter().append("svg:marker")    // This section adds in the arrows
+      .attr("id", String)
+      .attr("viewBox", "0 0 10 10")
+      .attr("refX", 1)
+      .attr("refY", 5)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto")
+    .append("svg:path")
+      .attr("d", "M 0 0 L 10 5 L 0 10");
+
+  // add the links and the arrows
+  path = svg.append("svg:g").selectAll("path")
+      .data(force.links())
+    .enter().append("svg:path")
+      .attr("class", "link")
+      .attr("marker-mid", "url(#mid)");
+
+  // define the nodes
+  node = svg.selectAll(".node")
+      .data(force.nodes())
+    .enter().append("g")
+      .attr("class", "node")
+      .call(force.drag);
+
+  node.append("circle")
+    .style("fill", function(d) { return officeColors[d.office]; })
+    .attr("r", function(d) { return circleScale(d.sigCount); });
+
+  node.append("text")
+    .attr("x", function (d) { return circleScale(d.sigCount) + 3; })
+      .attr("dy", ".35em")
+      .text(function(d) { return d.name; });
+
+
+	legend = svg.append("g")
+	  .attr("class", "legend")
+	  .attr("x", width - 65)
+	  .attr("y", 25)
+	  .attr("height", 100)
+	  .attr("width", 100);
+
+	legend.selectAll('g').data(Object.keys(officeColors))
+      .enter()
+      .append('g')
+      .each(function(d, i) {
+        var g = d3.select(this);
+        g.append("circle")
+          .attr("cx", 15)
+          .attr("cy", i * 40 + 20)
+          .attr("r", 15)
+          .style("fill", officeColors[d]);
+
+        g.append("text")
+          .attr("class", "legend-label")
+          .attr("x", 35)
+          .attr("y", i * 40 + 25)
+          .attr("height", 55)
+          .attr("width", 100)
+          .style("fill", '#000')
+          .text(d);
+
+      });
+
+  svg.append("text")
+		.attr("x", width / 2 )
+        .attr("y", 30)
+        .attr("class", "title")
+        .style("text-anchor", "middle")
+        .text("Rax.IO 2014 Web of Trust");
+
+  function tick() {
+      path.attr("d", function(d) {
+          var dx = (d.target.x - d.source.x) / 1.5,
+              dy = (d.target.y - d.source.y) / 1.5,
+              dr = Math.sqrt(dx * dx + dy * dy),
+              edge = d.target.x - 60;
+
+          return "M" +
+              d.source.x + "," +
+              d.source.y + "A" +
+              dr + "," + dr + " 0 0,1 " +
+              d.target.x + "," +
+              d.target.y;
+      });
+
+      node.attr("transform", function(d) {
+        return "translate(" + d.x + "," + d.y + ")";
+      });
+  }
+});
+</script>
+</body>
+</html>
