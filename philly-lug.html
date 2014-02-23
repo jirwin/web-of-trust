@@ -46,6 +46,7 @@ text {
 <script>
 
 // Heavily inspired by http://bl.ocks.org/d3noob/5141528
+// Data sourced from http://www.phillylinux.org/keys/historical.html
 
 var w = window,
     d = document,
@@ -165,7 +166,7 @@ d3.json("phillylug.json", function(error, tree) {
         .attr("y", 30)
         .attr("class", "title")
         .style("text-anchor", "middle")
-        .text("Rax.IO 2014 Web of Trust");
+        .text("Philly Linux Key Signing Party 2007");
 
   function tick() {
       path.attr("d", function(d) {
