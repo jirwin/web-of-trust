@@ -55,7 +55,7 @@ var w = window,
     height = w.innerHeight|| e.clientHeight|| g.clientHeight;
 
 
-d3.json("raxio2014.json", function(error, tree) {
+d3.json("raxio2014-updated.json", function(error, tree) {
   var nodes = tree.nodes,
       links = tree.links,
       circleScale,
@@ -76,7 +76,8 @@ d3.json("raxio2014.json", function(error, tree) {
     'sydney': '#56aee2',
     'zurich': '#e28956',
     'atlanta': '#56e2cf',
-    'wfh': '#8a56e2'
+    'wfh': '#8a56e2',
+    'uk': '#aee256'
   };
 
   // Compute the distinct nodes from the links.
@@ -90,8 +91,8 @@ d3.json("raxio2014.json", function(error, tree) {
       .nodes(d3.values(nodes))
       .links(links)
       .size([width, height])
-      .linkDistance(500)
-      .charge(-550)
+      .linkDistance(400)
+      .charge(-300)
       .on("tick", tick)
       .start();
 
